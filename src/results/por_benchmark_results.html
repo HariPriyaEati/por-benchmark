@@ -1,1 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proof of Reserve - Performance Benchmark</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f4f6f9;
+    margin: 0;
+    padding: 30px;
+    color: #333;
+  }
+  h1 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 5px;
+    font-size: 24px;
+  }
+  .subtitle {
+    text-align: center;
+    color: #666;
+    margin-bottom: 30px;
+    font-size: 14px;
+  }
+  .chart-container {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+    max-width: 1000px;
+    margin: 0 auto 30px auto;
+  }
+  .table-container {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+    max-width: 1000px;
+    margin: 0 auto;
+    overflow-x: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  th {
+    background: #2c3e50;
+    color: white;
+    padding: 10px 14px;
+    text-align: center;
+  }
+  td {
+    padding: 8px 14px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+  }
+  tr:hover { background: #f8f9fa; }
+  .note {
+    text-align: center;
+    color: #888;
+    font-size: 12px;
+    margin-top: 15px;
+  }
+</style>
+</head>
+<body>
+<h1>Proof of Reserve Scheme — Performance Comparison</h1>
+<p class="subtitle">Benchmark: Proof Generation Time (ms) vs Number of Users | Each point averaged over 10 runs</p>
 
+<div class="chart-container">
+  <canvas id="perfChart" height="400"></canvas>
+</div>
+
+<div class="table-container">
+  <h3 style="margin-top:0; color:#2c3e50;">Raw Benchmark Data (ms)</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Users (N)</th>
+        <th>Merkle Tree</th>
+        <th>Merkle Sum Tree</th>
+        <th>zk-SNARK (Groth16)</th>
+        <th>zk-STARK (FRI)</th>
+        <th>Plonky2/3</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+  <p class="note">All times in milliseconds (ms). Lower is better. Each result is the average of 10 independent runs.</p>
+</div>
+
+<script>
+const labels = [1000,2000,3000,4000,5000,6000,7000,8000,9000,10000];
+const merkleData = [0.2109,0.4461,0.8008,0.9219,1.5331,1.7562,1.6309,1.7007,3.4161,3.1027];
+const merkleSumData = [0.2104,0.4493,0.8892,0.9735,1.7666,1.8507,1.7423,1.7751,3.5917,3.5963];
+const snarkData = [1.4635,2.9447,4.4641,5.9646,7.4751,8.9729,10.5055,12.0175,13.5398,15.0574];
+const starkData = [1.2147,2.2797,3.3596,4.3612,5.4369,6.4510,7.4939,8.4989,9.6099,10.6574];
+const plonky2Data = [0.7723,1.5356,2.2980,3.0499,3.8148,4.5857,5.3473,6.1263,6.8924,7.6455];
+
+// Populate table
+const tbody = document.getElementById('tableBody');
+labels.forEach((n, i) => {
+  const row = `<tr>
+    <td><strong>${n}</strong></td>
+    <td>${merkleData[i].toFixed(4)}</td>
+    <td>${merkleSumData[i].toFixed(4)}</td>
+    <td>${snarkData[i].toFixed(4)}</td>
+    <td>${starkData[i].toFixed(4)}</td>
+    <td>${plonky2Data[i].toFixed(4)}</td>
+  </tr>`;
+  tbody.innerHTML += row;
+});
+
+// Draw chart
+const ctx = document.getElementById('perfChart').getContext('2d');
+new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: labels,
+    datasets: [
+      {
+        label: 'Merkle Tree',
+        data: merkleData,
+        borderColor: '#3498db',
+        backgroundColor: 'rgba(52,152,219,0.1)',
+        borderWidth: 2.5,
+        pointRadius: 5,
+        tension: 0.3,
+        fill: false
+      },
+      {
+        label: 'Merkle Sum Tree',
+        data: merkleSumData,
+        borderColor: '#2ecc71',
+        backgroundColor: 'rgba(46,204,113,0.1)',
+        borderWidth: 2.5,
+        pointRadius: 5,
+        tension: 0.3,
+        fill: false
+      },
+      {
+        label: 'zk-SNARK (Groth16)',
+        data: snarkData,
+        borderColor: '#e74c3c',
+        backgroundColor: 'rgba(231,76,60,0.1)',
+        borderWidth: 2.5,
+        pointRadius: 5,
+        tension: 0.3,
+        fill: false
+      },
+      {
+        label: 'zk-STARK (FRI)',
+        data: starkData,
+        borderColor: '#f39c12',
+        backgroundColor: 'rgba(243,156,18,0.1)',
+        borderWidth: 2.5,
+        pointRadius: 5,
+        tension: 0.3,
+        fill: false
+      },
+      {
+        label: 'Plonky2/3',
+        data: plonky2Data,
+        borderColor: '#9b59b6',
+        backgroundColor: 'rgba(155,89,182,0.1)',
+        borderWidth: 2.5,
+        pointRadius: 5,
+        tension: 0.3,
+        fill: false
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: {
+        position: 'top',
+        labels: { font: { size: 13 }, padding: 20 }
+      },
+      tooltip: {
+        callbacks: {
+          label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(4)} ms`
+        }
+      }
+    },
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: 'Number of Users (N)',
+          font: { size: 13, weight: 'bold' }
+        },
+        grid: { color: 'rgba(0,0,0,0.05)' }
+      },
+      y: {
+        title: {
+          display: true,
+          text: 'Proof Generation Time (ms)',
+          font: { size: 13, weight: 'bold' }
+        },
+        grid: { color: 'rgba(0,0,0,0.05)' },
+        ticks: {
+          callback: val => val.toFixed(3) + ' ms'
+        }
+      }
+    }
+  }
+});
+</script>
+</body>
+</html>
